@@ -25,12 +25,8 @@ time.sleep(3)
 rocks = driver.find_elements(By.CLASS_NAME, "lot-title")
 print(len(rocks))
 
-# Find the images
-images = driver.find_elements(By.TAG_NAME, 'img')
-images = images[1:-1]
-print(len(images))
-
-href_to_rocks = driver.find_elements(By.CSS_SELECTOR, 'a[class="lot-number-lead lot-link lot-title-ellipsis lot-preview-link link mb-1 ng-star-inserted"]')
+href_to_rocks = driver.find_elements(By.CSS_SELECTOR,
+                                     'a[class="lot-number-lead lot-link lot-title-ellipsis lot-preview-link link mb-1 ng-star-inserted"]')
 
 for href in href_to_rocks:
     rock_hrefs.append(href.get_attribute('href'))
@@ -39,25 +35,9 @@ for rock in rocks:
     # print(rock.get_attribute('href'))
     final_rock_names.append(rock.text)
 
-
-print(rock_hrefs)
-# for count, image in enumerate(images):
-#     src = image.get_attribute('src')
-#     final_images.append(src)
-
-
-
-
-# testfile.retrieve(URL, image_name)
-
-
-# Could do it where I grab all of the links to the devices and then just open each link
-##
-
 time.sleep(2)
 for count, href in enumerate(rock_hrefs):
-
-    driver.get(href) # Gets the URL from the list
+    driver.get(href)  # Gets the URL from the list
     try:
         # Checks if there is a newsletter button
         time.sleep(2)
@@ -69,23 +49,35 @@ for count, href in enumerate(rock_hrefs):
     current_url = driver.current_url
     current_id = current_url.split('/')[4]
     rock_image_test = []
-    click_rock_image = driver.find_element(By.XPATH,
-                                           f'//*[@id="lot-details-{current_id}"]/div[1]/div[1]/app-lot-image-gallery/div/div[1]/ngx-gallery/div/ngx-gallery-image/div/div[1]/div').click()
+    try:
+        click_rock_image = driver.find_element(By.XPATH,
+                                               f'//*[@id="lot-details-{current_id}"]/div[1]/div[1]/app-lot-image-gallery/div/div[1]/ngx-gallery/div/ngx-gallery-image/div/div[1]/div').click()
+    except:
+        print("Not able to find rock image to click")
+        break
 
     time.sleep(2)
     # Goes through the Gallery. Max 10 pictures
     for gallery_images in range(0, 10):
-        rock_image_test.append(driver.find_element(By.CSS_SELECTOR,
-                                                   'img[class="ngx-gallery-preview-img ngx-gallery-center animation ng-star-inserted ngx-gallery-active"]').get_attribute(
-            'src'))
-        time.sleep(1)
-        click_next = driver.find_element(By.XPATH,
-                                         f'//*[@id="lot-details-{current_id}"]/div[1]/div[1]/app-lot-image-gallery/div/div[1]/ngx-gallery/div/ngx-gallery-preview/ngx-gallery-arrows/div[2]/div/i').click()
-        time.sleep(2)
+        try:
+            rock_image_test.append(driver.find_element(By.CSS_SELECTOR,
+                                                       'img[class="ngx-gallery-preview-img ngx-gallery-center animation ng-star-inserted ngx-gallery-active"]').get_attribute(
+                'src'))
+            time.sleep(1)
+        except NoSuchElementException:
+            print("Not able to click on Gallery")
+            break
+        try:
+            click_next = driver.find_element(By.XPATH,
+                                             f'//*[@id="lot-details-{current_id}"]/div[1]/div[1]/app-lot-image-gallery/div/div[1]/ngx-gallery/div/ngx-gallery-preview/ngx-gallery-arrows/div[2]/div/i').click()
+            time.sleep(2)
+        except NoSuchElementException:
+            print("Not able to click on next button")
+            break
         # print(rock_image_test)
     final_images.append([*set(rock_image_test)])
     time.sleep(1)
-    print(f"This is the current images{final_images[count]}\nThis is the current name{final_rock_names[count]}")
+    print(f"This is the current images: {final_images[count]}\nThis is the current name: {final_rock_names[count]}")
 
     with open('rocks.csv', 'a', newline='') as csvfile:
         rockwriter = csv.writer(csvfile)
@@ -100,11 +92,8 @@ for count, href in enumerate(rock_hrefs):
         rockwriter.writerow(input_data)
         csvfile.close()
 
-
 URL = "https://cdn.hibid.com/img.axd?id=7821513987&wid=&rwl=false&p=&ext=&w=0&h=0&t=&lp=&c=true&wt=false&sz=MAX&checksum=w5tkAuyzMuAGCdhRQj2J1Vbxy1iMFA6G"
 data = requests.get(URL).content
-
-
 
 print(final_rock_names)
 print(final_images)
